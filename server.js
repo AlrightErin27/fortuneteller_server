@@ -17,26 +17,62 @@ app.use(cors());
 //request body parser
 app.use(express.json());
 
-//Mongoose Config//
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/fortunetellerdb";
+if (process.env.NODE_ENV === "development") {
+  //Mongoose Config//
+  const MONGO_URI =
+    process.env.MONGO_URI || "mongodb://localhost:27017/fortunetellerdb";
 
-//Connect to MONGO_URI//
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-});
-const db = mongoose.connection;
+  //Connect to MONGO_URI//
+  mongoose.connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  });
+  const db = mongoose.connection;
 
-//Database Methods for Debugging//
-db.once("open", () => {
-  console.log(`👐 mongoDB connection @ ${db.host}: ${db.port} 👐`);
-});
-db.on("error", (err) => {
-  console.error(`☠️ ☠️ ☠️ Oh no! Something is wrong with the DB!\n ${err}`);
-});
+  //Database Methods for Debugging//
+  db.once("open", () => {
+    console.log(`👐 mongoDB connection @ ${db.host}: ${db.port} 👐`);
+  });
+  db.on("error", (err) => {
+    console.error(`☠️ ☠️ ☠️ Oh no! Something is wrong with the DB!\n ${err}`);
+  });
+  ///////ELSE//////////
+} else {
+  //mongoDB atlas code//
+  const MongoClient = require("mongodb").MongoClient;
+
+  const uri = process.env.ATLAS_URI;
+
+  const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  client.connect((err) => {
+    const collection = client.db("test").collection("devices");
+    // perform actions on the collection object
+    client.close();
+  });
+
+  //Connect to URI//
+  mongoose.connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  });
+  const db = mongoose.connection;
+
+  //Database Methods for Debugging//
+  db.once("open", () => {
+    console.log(`👐 mongoDB connection @ ${db.host}: ${db.port} 👐`);
+  });
+  db.on("error", (err) => {
+    console.error(`🤯 🤯 🤯 Oh no! Something is wrong with the DB!\n ${err}`);
+  });
+}
 
 //Test Route// GET(index route)
 app.get("/", (req, res) => {
